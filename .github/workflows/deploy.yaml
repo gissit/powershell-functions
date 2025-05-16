@@ -19,17 +19,11 @@ jobs:
         shell: pwsh
         run: ./function-generator/build-functions.ps1
 
-      - name: Zip the 'dist' folder
-        run: |
-          cd dist
-          zip -r ../functions-package.zip . 
-        shell: bash
-
-      - name: Upload artifact
+      - name: Upload dist/ content as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: functions-package
-          path: functions-package.zip
+          name: powershell-functions-dist
+          path: dist/
 
       # - name: Deploy to Azure
       #   uses: Azure/functions-action@v1
