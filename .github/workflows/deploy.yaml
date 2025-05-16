@@ -1,0 +1,27 @@
+name: Deploy PowerShell Functions
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        shell: pwsh
+        run: Install-Module -Name powershell-yaml -Force -Scope CurrentUser
+
+      - name: Generate Azure Functions layout
+        shell: pwsh
+        run: ./function-generator/build-functions.ps1
+
+      # - name: Deploy to Azure
+      #   uses: Azure/functions-action@v1
+      #   with:
+      #     app-name: <TON_APP_NAME>
+      #     publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+      #     package: ./build

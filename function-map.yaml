@@ -1,0 +1,36 @@
+# ===============================================
+# Azure PowerShell Function Configuration (YAML)
+# ===============================================
+# This file defines the list of Azure Functions to generate,
+# along with the script to run, trigger type (timer or HTTP),
+# and the authentication level required to access the function.
+#
+# Each function entry contains:
+#
+# - name:             The name of the Azure Function (must be unique)
+# - script:           The name of the .ps1 script to embed into the function
+# - schedule:         Optional CRON expression (e.g., "0 0 * * *")
+#                     • If present, creates a timer trigger (runs automatically on a schedule)
+#                     • If empty or null, creates an HTTP trigger (called by URL)
+# - authLevel:        Access level for the function's trigger:
+#                     • anonymous – no key required (public)
+#                     • function – requires function key
+#                     • admin     – requires master key
+#
+# Example usage:
+# - A scheduled function to reset user passwords daily at midnight.
+# - An HTTP-triggered function to notify users about password expiry.
+#
+# NOTE:
+# Make sure the referenced scripts exist under the ./scripts/ folder.
+
+functions:
+  - name: ResetUserPassword
+    script: reset-user-password.ps1
+    schedule: "0 0 * * *"
+    authLevel: anonymous
+
+  - name: NotifyExpiringPasswords
+    script: notify-expiring-passwords.ps1
+    schedule:
+    authLevel: function
