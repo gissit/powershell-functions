@@ -1,39 +1,39 @@
 <#
 .SYNOPSIS
-    Build script for Azure PowerShell Functions from templates and configuration.
+    Builds Azure PowerShell Functions from a shared template and per-function definitions.
 
 .DESCRIPTION
-    This script automates the process of generating Azure PowerShell Function Apps
-    from a shared script template and a YAML configuration file.
+    This script automates the generation of Azure Functions written in PowerShell using:
+        - a shared execution template (`run.template.ps1`)
+        - a list of function definitions described in a YAML config file (`function-map.yaml`)
+        - custom user scripts stored in the `./scripts/` directory
 
-    It performs the following steps:
-    1. Imports the 'powershell-yaml' module (used to parse the YAML config).
-    2. Removes any existing `./dist` directory to ensure a clean build.
-    3. Recreates the `./dist` directory where the built function folders will go.
-    4. Loads a script template (run.template.ps1) that contains common code.
-    5. Loads the function mapping from the `function-map.yaml` configuration file.
-    6. For each function defined in the YAML:
-        - Reads the specific user script to embed.
-        - Injects the user script into the template.
-        - Creates a folder for the function in the `./dist` directory.
-        - Saves the final composed script as `run.ps1` in the function folder.
-        - Generates the `function.json` file that defines how the function is triggered:
-            a. If a schedule is defined, it creates a timerTrigger.
-            b. Otherwise, it creates an httpTrigger and adds an HTTP output.
+    For each function entry, the script performs the following:
+        1. Reads the corresponding script file, extracting its documentation block (if present).
+        2. Removes the synopsis block from the script body to avoid duplication.
+        3. Loads the common function template and replaces its synopsis block with the one from the user script.
+        4. Replaces the `{script}` placeholder in the template with the properly indented body of the user script.
+        5. Creates a subdirectory under `./dist/` for the function.
+        6. Saves the final script as `run.ps1` inside that folder.
+        7. Generates a `function.json` file defining the trigger binding:
+            - If `schedule` is set: creates a `timerTrigger`.
+            - Otherwise: creates an `httpTrigger` with an `http` output.
 
 .PARAMETERS
     None
 
 .NOTES
-    - Requires the 'powershell-yaml' module to be installed.
-    - Assumes the presence of:
-        • A run.template.ps1 file in the same folder as this script.
-        • A function-map.yaml file one level up from this script.
-        • Individual PowerShell scripts in the ./scripts/ folder.
+    Requirements:
+        - The 'powershell-yaml' module must be installed.
+        - `run.template.ps1` must be in the same directory as this script.
+        - `function-map.yaml` must be one directory level up.
+        - All referenced scripts must exist in the `./scripts/` directory.
 
 .EXAMPLE
-    PS> ./build-functions.ps1
-    Will generate a set of Azure Function folders under ./dist ready to deploy.
+    PS> ./function-generator/build-functions.ps1
+
+    This will generate a folder structure under ./dist/ with one subfolder per function,
+    each containing a ready-to-deploy Azure PowerShell Function (`run.ps1`, `function.json`).
 
 #>
 
@@ -49,8 +49,23 @@ $template = Get-Content "$PSScriptRoot/run.template.ps1" -Raw
 $mapping = ConvertFrom-Yaml (Get-Content "$PSScriptRoot/../function-map.yaml" -Raw)
 
 foreach ($fn in $mapping.functions) {
-    $userScript = Get-Content "./scripts/$($fn.script)" -Raw
-    $fullScript = $template -replace '\{script\}', $userScript
+    $userScriptFull = Get-Content "./scripts/$($fn.script)" -Raw
+
+    if ($userScriptFull -match '<#(.|\s)*?#>') {
+        $userSynopsis = $Matches[0]
+        $userScriptBody = $userScriptFull -replace [regex]::Escape($userSynopsis), '' -replace '^\s*', ''
+    } else {
+        $userSynopsis = ''
+        $userScriptBody = $userScriptFull
+    }
+
+    $template = Get-Content "$PSScriptRoot/run.template.ps1" -Raw
+    $template = $template -replace '<#(.|\s)*?#>', $userSynopsis
+
+    $indent = '    '
+    $indentedScript = ($userScriptBody -split "`n" | ForEach-Object { "$indent$_" }) -join "`n"
+
+    $fullScript = $template -replace '\{script\}', $indentedScript.Trim()
 
     $fnDir = Join-Path $buildDir $fn.name
     New-Item -ItemType Directory -Path $fnDir -Force | Out-Null
@@ -75,7 +90,6 @@ foreach ($fn in $mapping.functions) {
             methods   = @("get", "post")
         }
 
-        # Add HTTP output only for HTTP trigger
         $binding += @{
             type      = "http"
             direction = "out"
@@ -83,7 +97,6 @@ foreach ($fn in $mapping.functions) {
         }
     }
 
-    # We need a JSON array named bindings
     @{ bindings = $binding }
         | ConvertTo-Json -Depth 3
         | Set-Content "$fnDir/function.json" -Encoding UTF8

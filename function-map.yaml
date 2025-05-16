@@ -32,5 +32,4 @@ functions:
 
   - name: NotifyExpiringPasswords
     script: notify-expiring-passwords.ps1
-    schedule:
     authLevel: function
