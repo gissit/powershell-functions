@@ -22,7 +22,7 @@ jobs:
       - name: Upload dist/ content as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: powershell-functions-dist
+          name: functions
           path: dist/
 
       # - name: Deploy to Azure
