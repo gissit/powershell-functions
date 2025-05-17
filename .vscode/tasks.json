@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-functions",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/builder/build.ps1"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "func: host start",
+      "type": "shell",
+      "command": "func host start",
+      "options": {
+        "cwd": "${workspaceFolder}/dist"
+      },
+      "dependsOn": [
+        "build-functions"
+      ],
+      "problemMatcher": "$func-powershell-watch",
+      "isBackground": true
+    }
+  ]
+}
