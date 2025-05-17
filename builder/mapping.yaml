@@ -27,7 +27,7 @@
 functions:
   - name: ResetUserPassword
     script: reset-user-password.ps1
-    schedule: "0 0 * * *"
+    schedule: "0 * * * * *"
     authLevel: anonymous
 
   - name: NotifyExpiringPasswords

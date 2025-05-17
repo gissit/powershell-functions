@@ -39,7 +39,7 @@
     - `Write-Error` captures unhandled exceptions for diagnostics.
 #>
 
-param($Request, $TriggerMetadata)
+{param}
 
 try {
     Write-Information "Function started."
@@ -51,9 +51,7 @@ try {
     # END USER-DEFINED SCRIPT
 
     Write-Information "Function completed successfully."
-    return @{ status = 200; body = "OK" }
 }
 catch {
     Write-Error "Unhandled exception: $_"
-    return @{ status = 500; body = $_.Exception.Message }
 }

@@ -44,9 +44,10 @@ $buildDir = "./dist"
 Remove-Item -Recurse -Force $buildDir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $buildDir -Force | Out-Null
 
-$template = Get-Content "$PSScriptRoot/run.template.ps1" -Raw
+$templateDir = "$PSScriptRoot/template"
+$template = Get-Content "$templateDir/run.template.ps1" -Raw
 
-$mapping = ConvertFrom-Yaml (Get-Content "$PSScriptRoot/../function-map.yaml" -Raw)
+$mapping = ConvertFrom-Yaml (Get-Content "$PSScriptRoot/mapping.yaml" -Raw)
 
 foreach ($fn in $mapping.functions) {
     $userScriptFull = Get-Content "./scripts/$($fn.script)" -Raw
@@ -59,13 +60,19 @@ foreach ($fn in $mapping.functions) {
         $userScriptBody = $userScriptFull
     }
 
-    $template = Get-Content "$PSScriptRoot/run.template.ps1" -Raw
     $template = $template -replace '<#(.|\s)*?#>', $userSynopsis
 
     $indent = '    '
     $indentedScript = ($userScriptBody -split "`n" | ForEach-Object { "$indent$_" }) -join "`n"
 
-    $fullScript = $template -replace '\{script\}', $indentedScript.Trim()
+
+    if ($fn.schedule) {
+        $fullScript = $template -replace '\{param\}', 'param($Timer)'
+    } else {
+        $fullScript = $template -replace '\{param\}', 'param($Request)'
+    }
+
+    $fullScript = $fullScript -replace '\{script\}', $indentedScript.Trim()
 
     $fnDir = Join-Path $buildDir $fn.name
     New-Item -ItemType Directory -Path $fnDir -Force | Out-Null
@@ -86,14 +93,14 @@ foreach ($fn in $mapping.functions) {
             authLevel = $fn.authLevel
             type      = "httpTrigger"
             direction = "in"
-            name      = "req"
+            name      = "Request"
             methods   = @("get", "post")
         }
 
         $binding += @{
             type      = "http"
             direction = "out"
-            name      = "res"
+            name      = "Response"
         }
     }
 
@@ -101,3 +108,9 @@ foreach ($fn in $mapping.functions) {
         | ConvertTo-Json -Depth 3
         | Set-Content "$fnDir/function.json" -Encoding UTF8
 }
+
+Copy-Item $templateDir/.funcignore $buildDir/.funcignore
+Copy-Item $templateDir/host.json $buildDir/host.json
+Copy-Item $templateDir/profile.ps1 $buildDir/profile.ps1
+Copy-Item $templateDir/requirements.psd1 $buildDir/requirements.psd1
+Copy-Item $templateDir/local.settings.json $buildDir/local.settings.json
