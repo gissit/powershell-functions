@@ -13,3 +13,8 @@ Write-Information "Notifying passwords expiration..."
 Write-Information "Notifying passwords expiration..."
 
 Write-Information "Notifying passwords expiration..."
+
+Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+    StatusCode = [System.Net.HttpStatusCode]::OK
+    Body = "Hello there!"
+})

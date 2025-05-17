@@ -17,7 +17,7 @@ jobs:
 
       - name: Generate Azure Functions layout
         shell: pwsh
-        run: ./function-generator/build-functions.ps1
+        run: ./builder/build.ps1
 
       - name: Upload dist/ content as artifact
         uses: actions/upload-artifact@v4
