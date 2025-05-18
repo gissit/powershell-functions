@@ -45,15 +45,11 @@ jobs:
 
       - name: Apply Terraform (auto-approve)
         working-directory: ./terraform
+        id: tf-output
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        run: terraform apply -auto-approve
-
-      - name: Get Terraform Output
-        id: tf-output
         run: |
-          terraform output -raw function_app_name
-
+          terraform apply -auto-approve
           echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
 
   deploy:
