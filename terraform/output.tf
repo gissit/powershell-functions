@@ -1,4 +1,4 @@
 
 output "function_app_name" {
-  value = azurerm_linux_function_app.functionapp.name
+  value = azurerm_linux_function_app.func.name
 }
