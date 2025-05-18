@@ -52,6 +52,7 @@ jobs:
           terraform apply -auto-approve
 
           OUT=$(terraform output -raw function_app_name)
+          echo $OUT
           echo "function_app_name=$OUT" >> $GITHUB_OUTPUT
 
   deploy:
