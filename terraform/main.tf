@@ -37,7 +37,7 @@ resource "azurerm_service_plan" "asp" {
   sku_name            = "Y1"
 }
 
-resource "azurerm_linux_function_app" "functionapp" {
+resource "azurerm_linux_function_app" "func" {
   name                = var.functionapp_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -62,8 +62,8 @@ resource "azurerm_linux_function_app" "functionapp" {
   }
 }
 
-resource "azurerm_role_assignment" "func_to_storage" {
-  principal_id         = azurerm_linux_function_app.func.identity.principal_id
+resource "azurerm_role_assignment" "function_to_storage" {
+  principal_id         = azurerm_linux_function_app.func.identity[0].principal_id
   role_definition_name = "Storage Blob Data Contributor"
-  scope                = azurerm_storage_account.main.id
+  scope                = azurerm_storage_account.sa.id
 }
