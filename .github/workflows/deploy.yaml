@@ -55,6 +55,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs: provision-infra 
     permissions:
       id-token: write
       contents: read
