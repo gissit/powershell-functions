@@ -51,7 +51,10 @@ jobs:
 
       - name: Get Terraform Output
         id: tf-output
-        run: echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
+        run: |
+          terraform output -raw function_app_name
+
+          echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
@@ -73,7 +76,7 @@ jobs:
 
       - name: Zip the Function App
         run: |
-          cd api
+          cd dist
           zip -r ../function.zip .
 
       - name: Azure Login
