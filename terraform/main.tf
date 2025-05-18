@@ -1,3 +1,12 @@
+terraform {
+  backend "azurerm" {
+    resource_group_name   = "rg-infra"
+    storage_account_name  = "stgissitinfra"
+    container_name        = "tfstate"
+    key                   = "powershell-functions/dev.tfstate"
+  }
+}
+
 provider "azurerm" {
   features {}
   resource_provider_registrations = "none" # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
