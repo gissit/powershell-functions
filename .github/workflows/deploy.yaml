@@ -36,23 +36,17 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Azure CLI Test
-        run: |
-          az account show
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.11.3
 
       - name: Init Terraform
+        working-directory: ./terraform
         run: terraform init
 
       - name: Apply Terraform (auto-approve)
+        working-directory: ./terraform
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: terraform apply -auto-approve
-      # - name: Deploy to Azure
-      #   uses: Azure/functions-action@v1
-      #   with:
-      #     app-name: <TON_APP_NAME>
-      #     publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-      #     package: ./build
