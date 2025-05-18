@@ -61,3 +61,9 @@ resource "azurerm_linux_function_app" "functionapp" {
     "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
 }
+
+resource "azurerm_role_assignment" "func_to_storage" {
+  principal_id         = azurerm_linux_function_app.func.identity.principal_id
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.main.id
+}
