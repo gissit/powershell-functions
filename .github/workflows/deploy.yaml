@@ -50,6 +50,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: |
           terraform apply -auto-approve
+          terraform output
           echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
 
   deploy:
