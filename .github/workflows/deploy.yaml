@@ -74,26 +74,16 @@ jobs:
         shell: pwsh
         run: ./builder/build.ps1
 
-      - name: Zip the Function App
-        run: |
-          cd dist
-          zip -r ../function.zip .
-
       - name: Azure Login
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy to Azure Function App
-        uses: azure/webapps-deploy@v3
+          
+      - name: 'Run the Azure Functions action'
+        uses: azure/functions-action@v1
+        id: deploy-to-function-app
         with:
           app-name: ${{ needs.provision-infra.outputs.function_app_name }}
-          package: ./function.zip
-
-      - name: Upload dist/ content as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: functions
-          path: ./functions.zip
+          package: ./dist
