@@ -1,6 +1,7 @@
 name: Deploy PowerShell Functions
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
 
