@@ -8,12 +8,12 @@ on:
 jobs:
   provision-infra:
     runs-on: ubuntu-latest
-    outputs:
-      function_app_name: ${{ steps.tf-output.outputs.function_app_name }}
-
     permissions:
       id-token: write
       contents: read
+
+    outputs:
+      function_app_name: ${{ steps.tf-output.outputs.function_app_name }}
 
     env:
       PROJECT_NAME: powershell-functions
@@ -51,15 +51,16 @@ jobs:
         run: |
           terraform apply -auto-approve
 
-          $OUT=$(terraform output -raw function_app_name)
+          OUT=$(terraform output -raw function_app_name)
           echo "function_app_name=$OUT" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
-    needs: provision-infra 
     permissions:
       id-token: write
       contents: read
+
+    needs: provision-infra 
 
     steps:
       - uses: actions/checkout@v3
