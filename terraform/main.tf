@@ -11,6 +11,7 @@ terraform {
 provider "azurerm" {
   features {}
   resource_provider_registrations = "none" # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
+  storage_use_azuread = true
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -24,6 +25,7 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  shared_access_key_enabled = false
 }
 
 resource "azurerm_service_plan" "asp" {
@@ -41,7 +43,6 @@ resource "azurerm_linux_function_app" "functionapp" {
   resource_group_name = azurerm_resource_group.rg.name
   service_plan_id     = azurerm_service_plan.asp.id
   storage_account_name       = azurerm_storage_account.sa.name
-  storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   https_only          = true
 
   site_config {
@@ -58,4 +59,10 @@ resource "azurerm_linux_function_app" "functionapp" {
     "FUNCTIONS_WORKER_RUNTIME" = "powershell"
     "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
+}
+
+resource "azurerm_role_assignment" "function_storage_access" {
+  principal_id         = azurerm_linux_function_app.functionapp.identity[0].principal_id
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.sa.id
 }
