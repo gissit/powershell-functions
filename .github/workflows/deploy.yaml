@@ -40,16 +40,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Set state key
-        run: echo "STATE_KEY=tfstate/${PROJECT_NAME}/${ENV_NAME}.tfstate" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.11.3
 
+      - name: Set state key
+        run: echo "STATE_KEY=tfstate/${PROJECT_NAME}/${ENV_NAME}.tfstate" >> $GITHUB_ENV
+
       - name: Init Terraform
         working-directory: ./terraform
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: terraform init
 
       - name: Apply Terraform (auto-approve)

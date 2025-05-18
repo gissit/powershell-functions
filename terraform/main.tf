@@ -1,9 +1,10 @@
 terraform {
   backend "azurerm" {
-    resource_group_name   = "rg-infra"
-    storage_account_name  = "stgissitinfra"
-    container_name        = "tfstate"
-    key                   = "powershell-functions/dev.tfstate"
+    resource_group_name  = "rg-infra"
+    storage_account_name = "stgissitinfra"
+    container_name       = "tfstate"
+    key                  = "powershell-functions/dev.tfstate"
+    use_azuread_auth     = true
   }
 }
 
