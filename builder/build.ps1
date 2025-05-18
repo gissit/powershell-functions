@@ -113,4 +113,4 @@ Copy-Item $templateDir/.funcignore $buildDir/.funcignore
 Copy-Item $templateDir/host.json $buildDir/host.json
 Copy-Item $templateDir/profile.ps1 $buildDir/profile.ps1
 Copy-Item $templateDir/requirements.psd1 $buildDir/requirements.psd1
-Copy-Item $templateDir/local.settings.json $buildDir/local.settings.json
+# Copy-Item $templateDir/local.settings.json $buildDir/local.settings.json
