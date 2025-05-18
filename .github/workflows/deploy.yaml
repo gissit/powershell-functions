@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  provision_infra:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -18,20 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Install dependencies
-        shell: pwsh
-        run: Install-Module -Name powershell-yaml -Force -Scope CurrentUser
-
-      - name: Generate Azure Functions layout
-        shell: pwsh
-        run: ./builder/build.ps1
-
-      - name: Upload dist/ content as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: functions
-          path: dist/
 
       - name: Azure Login
         uses: azure/login@v1
@@ -59,3 +45,47 @@ jobs:
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: terraform apply -auto-approve
+
+      - name: Get Terraform Output
+        run: echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
+
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        shell: pwsh
+        run: Install-Module -Name powershell-yaml -Force -Scope CurrentUser
+
+      - name: Generate Azure Functions layout
+        shell: pwsh
+        run: ./builder/build.ps1
+
+      - name: Zip the Function App
+        run: |
+          cd api
+          zip -r ../function.zip .
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Function App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ needs.provision_infra.outputs.function_app_name }}
+          package: ./function.zip
+
+      - name: Upload dist/ content as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: functions
+          path: ./functions.zip
