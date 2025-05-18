@@ -6,8 +6,11 @@ on:
     branches: [ main ]
 
 jobs:
-  provision_infra:
+  provision-infra:
     runs-on: ubuntu-latest
+    outputs:
+      function_app_name: ${{ steps.tf-output.outputs.function_app_name }}
+
     permissions:
       id-token: write
       contents: read
@@ -47,6 +50,7 @@ jobs:
         run: terraform apply -auto-approve
 
       - name: Get Terraform Output
+        id: tf-output
         run: echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
 
   deploy:
@@ -81,7 +85,7 @@ jobs:
       - name: Deploy to Azure Function App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ needs.provision_infra.outputs.function_app_name }}
+          app-name: ${{ needs.provision-infra.outputs.function_app_name }}
           package: ./function.zip
 
       - name: Upload dist/ content as artifact
